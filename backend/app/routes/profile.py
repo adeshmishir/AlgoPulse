@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.services.leetcode_service import get_user_profile
+from app.services.analytics_service import build_profile_analytics
 
 router = APIRouter()
 
@@ -10,11 +11,4 @@ def profile(username: str):
     if data is None:
         raise HTTPException(status_code=404, detail="LeetCode user not found")
 
-    return {
-        "username": data["username"],
-        "real_name": data["profile"]["realName"],
-        "ranking": data["profile"]["ranking"],
-        "reputation": data["profile"]["reputation"],
-        "avatar": data["profile"]["userAvatar"],
-        "solved": data["submitStats"]["acSubmissionNum"]
-    }
+    return build_profile_analytics(data)
