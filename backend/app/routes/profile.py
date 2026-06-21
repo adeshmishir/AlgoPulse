@@ -5,7 +5,7 @@ from app.dependencies import get_db
 from app.services.leetcode_service import get_user_profile
 from app.services.analytics_service import build_profile_analytics
 from app.services.user_service import save_or_update_user
-
+from app.services.user_service import save_or_update_user, get_user_history
 router = APIRouter()
 
 @router.get("/profile/{username}")
@@ -20,3 +20,20 @@ def profile(username: str, db: Session = Depends(get_db)):
     save_or_update_user(db, analytics)
 
     return analytics
+
+@router.get("/profile/{username}/history")
+def profile_history(username: str, db: Session = Depends(get_db)):
+    history = get_user_history(db, username)
+
+    return [
+        {
+            "date": item.created_at,
+            "ranking": item.ranking,
+            "total_solved": item.total_solved,
+            "easy": item.easy,
+            "medium": item.medium,
+            "hard": item.hard,
+            "acceptance": item.acceptance,
+        }
+        for item in history
+    ]

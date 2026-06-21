@@ -18,18 +18,44 @@ def save_or_update_user(db, profile):
     user.hard = stats["hard"]
     user.acceptance = stats["acceptance_estimate"]
 
-    history = ProfileHistory(
-        username=profile["username"],
-        ranking=profile["ranking"],
-        total_solved=stats["total_solved"],
-        easy=stats["easy"],
-        medium=stats["medium"],
-        hard=stats["hard"],
-        acceptance=stats["acceptance_estimate"],
+    last_history = (
+        db.query(ProfileHistory)
+        .filter(ProfileHistory.username == profile["username"])
+        .order_by(ProfileHistory.created_at.desc())
+        .first()
     )
 
-    db.add(history)
+    should_create_history = (
+        last_history is None
+        or last_history.total_solved != stats["total_solved"]
+        or last_history.ranking != profile["ranking"]
+    )
+
+    if should_create_history:
+        history = ProfileHistory(
+            username=profile["username"],
+            ranking=profile["ranking"],
+            total_solved=stats["total_solved"],
+            easy=stats["easy"],
+            medium=stats["medium"],
+            hard=stats["hard"],
+            acceptance=stats["acceptance_estimate"],
+        )
+
+        db.add(history)
+
     db.commit()
     db.refresh(user)
 
     return user
+
+
+def get_user_history(db, username):
+    history = (
+        db.query(ProfileHistory)
+        .filter(ProfileHistory.username == username)
+        .order_by(ProfileHistory.created_at.asc())
+        .all()
+    )
+
+    return history
