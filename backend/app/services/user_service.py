@@ -1,4 +1,5 @@
 from app.models.user import User
+from app.models.profile_history import ProfileHistory
 
 
 def save_or_update_user(db, profile):
@@ -17,6 +18,17 @@ def save_or_update_user(db, profile):
     user.hard = stats["hard"]
     user.acceptance = stats["acceptance_estimate"]
 
+    history = ProfileHistory(
+        username=profile["username"],
+        ranking=profile["ranking"],
+        total_solved=stats["total_solved"],
+        easy=stats["easy"],
+        medium=stats["medium"],
+        hard=stats["hard"],
+        acceptance=stats["acceptance_estimate"],
+    )
+
+    db.add(history)
     db.commit()
     db.refresh(user)
 

@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.models.user import User
 from app.routes.profile import router as profile_router
+from app.models.profile_history import ProfileHistory
 
 Base.metadata.create_all(bind=engine)
 
