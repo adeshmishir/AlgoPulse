@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.database import Base, engine
+from app.models.user import User
 from app.routes.profile import router as profile_router
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AlgoPulse API")
 
