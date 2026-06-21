@@ -5,7 +5,8 @@ from app.dependencies import get_db
 from app.services.leetcode_service import get_user_profile
 from app.services.analytics_service import build_profile_analytics
 from app.services.user_service import save_or_update_user
-from app.services.user_service import save_or_update_user, get_user_history
+from app.services.user_service import save_or_update_user, get_user_history, get_user_summary
+
 router = APIRouter()
 
 @router.get("/profile/{username}")
@@ -37,3 +38,12 @@ def profile_history(username: str, db: Session = Depends(get_db)):
         }
         for item in history
     ]
+
+@router.get("/profile/{username}/summary")
+def profile_summary(username: str, db: Session = Depends(get_db)):
+    summary = get_user_summary(db, username)
+
+    if summary is None:
+        raise HTTPException(status_code=404, detail="User summary not found. Fetch profile first.")
+
+    return summary

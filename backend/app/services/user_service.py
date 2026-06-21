@@ -59,3 +59,34 @@ def get_user_history(db, username):
     )
 
     return history
+
+
+def get_user_summary(db, username):
+    user = db.query(User).filter(User.username == username).first()
+
+    if user is None:
+        return None
+
+    total = user.total_solved or 0
+
+    easy_percent = 0
+    medium_percent = 0
+    hard_percent = 0
+
+    if total > 0:
+        easy_percent = round((user.easy / total) * 100, 2)
+        medium_percent = round((user.medium / total) * 100, 2)
+        hard_percent = round((user.hard / total) * 100, 2)
+
+    return {
+        "username": user.username,
+        "ranking": user.ranking,
+        "total_solved": user.total_solved,
+        "easy": user.easy,
+        "medium": user.medium,
+        "hard": user.hard,
+        "easy_percent": easy_percent,
+        "medium_percent": medium_percent,
+        "hard_percent": hard_percent,
+        "acceptance": user.acceptance,
+    }
