@@ -2,52 +2,35 @@ from app.models.user import User
 from app.models.profile_history import ProfileHistory
 
 
-def save_or_update_user(db, profile):
-    stats = profile["stats"]
+def save_or_update_user(db, analytics):
+    try:
+        user = db.query(User).filter(User.username == analytics["username"]).first()
 
-    user = db.query(User).filter(User.username == profile["username"]).first()
+        if user:
+            user.ranking = analytics["ranking"]
+            user.total_solved = analytics["stats"]["total_solved"]
+            user.easy = analytics["stats"]["easy"]
+            user.medium = analytics["stats"]["medium"]
+            user.hard = analytics["stats"]["hard"]
+            user.acceptance = analytics["stats"]["acceptance_estimate"]
+        else:
+            user = User(
+                username=analytics["username"],
+                ranking=analytics["ranking"],
+                total_solved=analytics["stats"]["total_solved"],
+                easy=analytics["stats"]["easy"],
+                medium=analytics["stats"]["medium"],
+                hard=analytics["stats"]["hard"],
+                acceptance=analytics["stats"]["acceptance_estimate"],
+            )
+            db.add(user)
 
-    if user is None:
-        user = User(username=profile["username"])
-        db.add(user)
+        db.commit()
+        db.refresh(user)
 
-    user.ranking = profile["ranking"]
-    user.total_solved = stats["total_solved"]
-    user.easy = stats["easy"]
-    user.medium = stats["medium"]
-    user.hard = stats["hard"]
-    user.acceptance = stats["acceptance_estimate"]
-
-    last_history = (
-        db.query(ProfileHistory)
-        .filter(ProfileHistory.username == profile["username"])
-        .order_by(ProfileHistory.created_at.desc())
-        .first()
-    )
-
-    should_create_history = (
-        last_history is None
-        or last_history.total_solved != stats["total_solved"]
-        or last_history.ranking != profile["ranking"]
-    )
-
-    if should_create_history:
-        history = ProfileHistory(
-            username=profile["username"],
-            ranking=profile["ranking"],
-            total_solved=stats["total_solved"],
-            easy=stats["easy"],
-            medium=stats["medium"],
-            hard=stats["hard"],
-            acceptance=stats["acceptance_estimate"],
-        )
-
-        db.add(history)
-
-    db.commit()
-    db.refresh(user)
-
-    return user
+    except Exception as e:
+        db.rollback()
+        print("Database save error:", e)
 
 
 def get_user_history(db, username):
