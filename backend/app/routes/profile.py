@@ -5,7 +5,7 @@ from app.dependencies import get_db
 from app.services.leetcode_service import get_user_profile
 from app.services.analytics_service import build_profile_analytics
 from app.services.user_service import save_or_update_user
-from app.services.user_service import save_or_update_user, get_user_history, get_user_summary
+from app.services.user_service import save_or_update_user, get_user_history, get_user_summary, get_user_growth
 
 router = APIRouter()
 
@@ -47,3 +47,12 @@ def profile_summary(username: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User summary not found. Fetch profile first.")
 
     return summary
+
+@router.get("/profile/{username}/growth")
+def profile_growth(username: str, db: Session = Depends(get_db)):
+    growth = get_user_growth(db, username)
+
+    if growth is None:
+        raise HTTPException(status_code=404, detail="Not enough history data for growth analysis")
+
+    return growth

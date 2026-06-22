@@ -90,3 +90,33 @@ def get_user_summary(db, username):
         "hard_percent": hard_percent,
         "acceptance": user.acceptance,
     }
+
+
+def get_user_growth(db, username):
+    history = (
+        db.query(ProfileHistory)
+        .filter(ProfileHistory.username == username)
+        .order_by(ProfileHistory.created_at.asc())
+        .all()
+    )
+
+    if len(history) < 2:
+        return None
+
+    first = history[0]
+    latest = history[-1]
+
+    solved_growth = latest.total_solved - first.total_solved
+    ranking_change = first.ranking - latest.ranking
+
+    return {
+        "username": username,
+        "first_snapshot": first.created_at,
+        "latest_snapshot": latest.created_at,
+        "first_solved": first.total_solved,
+        "latest_solved": latest.total_solved,
+        "solved_growth": solved_growth,
+        "first_ranking": first.ranking,
+        "latest_ranking": latest.ranking,
+        "ranking_change": ranking_change,
+    }
